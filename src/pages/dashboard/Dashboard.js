@@ -1,181 +1,163 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import ApexLineChart from "./components/ApexLineChart";
 import { v4 as uuidv4 } from "uuid";
 import {
   Col,
   Row,
-  Progress,
-  Button,
-  DropdownToggle,
-  DropdownMenu,
-  DropdownItem,
-  UncontrolledDropdown
+  Table,
+  Pagination,
+  PaginationItem,
+  PaginationLink,
 } from "reactstrap";
 import Widget from "../../components/Widget/Widget.js";
-import ApexActivityChart from "./components/ActivityChart.js";
-
-import meal1 from "../../assets/dashboard/meal-1.svg";
-import meal2 from "../../assets/dashboard/meal-2.svg";
-import meal3 from "../../assets/dashboard/meal-3.svg";
-import upgradeImage from "../../assets/dashboard/upgradeImage.svg";
-import heartRed from "../../assets/dashboard/heartRed.svg";
-import heartTeal from "../../assets/dashboard/heartTeal.svg";
-import heartViolet from "../../assets/dashboard/heartViolet.svg";
-import heartYellow from "../../assets/dashboard/heartYellow.svg";
-import gymIcon from "../../assets/dashboard/gymIcon.svg";
-import therapyIcon from "../../assets/dashboard/therapyIcon.svg";
-import user from "../../assets/user.svg";
-import statsPie from "../../assets/dashboard/statsPie.svg";
-
+// import user from "../../assets/user.svg";
+import user from "../../assets/sksj0111.png";
+// import ReactBigCalendar from "./ReactBigCalendar";
 import s from "./Dashboard.module.scss";
 
 const Dashboard = () => {
-  const [checkboxes, setCheckboxes] = useState([true, false])
+  const ENDPOINT_URL = "http://192.168.80.101:8000";
 
-  const toggleCheckbox = (id) => {
-    setCheckboxes(checkboxes => checkboxes
-      .map((checkbox, index) => index === id ? !checkbox : checkbox ))
-  }
+  const [firstTable, setFirstTable] = useState([]);
+  const [userInfo, setUserInfo] = useState([]);
+  const [firstTableCurrentPage, setFirstTableCurrentPage] = useState(0);
 
-  const meals = [meal1, meal2, meal3];
+  const pageSize = 4;
+  const firstTablePagesCount = Math.ceil(firstTable.length / pageSize);
+
+  const setFirstTablePage = (e, index) => {
+    e.preventDefault();
+    setFirstTableCurrentPage(index);
+  };
+  // 서버에서 데이터를 받아오는 useEffect
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(ENDPOINT_URL + "/news"); // FastAPI 엔드포인트로 요청
+        const data = await response.json();
+        setFirstTable(data.data); // 서버에서 받은 데이터를 상태로 설정
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(
+          ENDPOINT_URL + "/user_info/sksj0111@naver.com"
+        );
+        console.log(response);
+        const data = await response.json();
+        setUserInfo(data);
+        console.log(data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   return (
     <div>
       <Row>
         <Col className="pr-grid-col" xs={12} lg={8}>
           <Row className="gutter mb-4">
-            <Col className="mb-4 mb-md-0" xs={12} md={6}>
-              <Widget className="">
-                <div className="d-flex justify-content-between widget-p-md">
-                  <div className="headline-3 d-flex align-items-center">Your activity</div>
-                  <UncontrolledDropdown>
-                    <DropdownToggle caret>
-                      &nbsp; Weekly &nbsp;
-                    </DropdownToggle>
-                    <DropdownMenu>
-                      <DropdownItem>Daily</DropdownItem>
-                      <DropdownItem>Weekly</DropdownItem>
-                      <DropdownItem>Monthly</DropdownItem>
-                    </DropdownMenu>
-                  </UncontrolledDropdown>
-                </div>
-                <ApexActivityChart className="pb-4"/>
-              </Widget>
-            </Col>
-            <Col xs={12} md={6}>
-              <Widget className="widget-p-md">
-                <div className="d-flex justify-content-between">
-                  <div className="headline-3 d-flex align-items-center">Your meals</div>
-                  <UncontrolledDropdown>
-                    <DropdownToggle caret>
-                      &nbsp; Weekly &nbsp;
-                    </DropdownToggle>
-                    <DropdownMenu>
-                      <DropdownItem>Daily</DropdownItem>
-                      <DropdownItem>Weekly</DropdownItem>
-                      <DropdownItem>Monthly</DropdownItem>
-                    </DropdownMenu>
-                  </UncontrolledDropdown>
-                </div>
-                {meals.map((meal) =>
-                  <div key={uuidv4()} className={`mt-4 ${s.widgetBlock}`}>
-                    <div className={s.widgetBody}>
-                      <div className="d-flex">
-                        <img className="img-fluid mr-2" src={meal} alt="..." />
-                        <div className="d-flex flex-column">
-                          <p className="body-2">Salmon salad</p>
-                          <p className="body-3 muted">300 g</p>
-                        </div>
-                      </div>
-                      <div className="body-3 muted">
-                        175 cal
-                      </div>
-                    </div>
-                  </div>
-                )}
+            <Col className="mb-4 mb-md-0" xs={12} md={12}>
+              <Widget className="" style={{ minHeight: "400px" }}>
+                <div className="headline-2 mb-3">Stock</div>
+                <ApexLineChart />
               </Widget>
             </Col>
           </Row>
-          <Row className="gutter mb-4">
+          <Row className="mb-4">
             <Col xs={12}>
               <Widget className="widget-p-none">
-                <div className="d-flex flex-wrap align-items-center justify-content-center">
-                  <div className="d-flex flex-column align-items-center col-12 col-xl-6 p-sm-4">
-                    <p className="headline-1">Upgrade your plan</p>
-                    <p className="body-3">So how did the classical Latin become so </p>
-                    <div className="d-flex justify-content-between my-4">
-                      <Button className="rounded-pill mr-3" color="primary">Go Premium</Button>
-                      <Button className="rounded-pill body-3" outline color="dark">Try for free</Button>
-                    </div>
-                  </div>
-                  <div className="d-flex justify-content-center col-12 col-xl-6">
-                    <img className="p-1 img-fluid" src={upgradeImage} alt="..." />
-                  </div>
+                <div className={s.tableTitle}>
+                  <div className="headline-2">MACHINE TOOLS NEWS</div>
                 </div>
-              </Widget>
-            </Col>
-          </Row>
-          <Row className="gutter">
-            <Col className="mb-4 mb-xl-0" xs={6} sm={6} xl={3}>
-              <Widget className="widget-p-sm">
-                <div className={s.smallWidget}>
-                  <div className="d-flex mb-4">
-                    <img className="py-1 mr-2 img-fluid" src={heartRed} alt="..." />
-                    <div className="d-flex flex-column">
-                      <p className="headline-3">Text</p>
-                      <p className="body-2">Num<span className="body-3 muted">/ ber</span></p>
-                    </div>
-                  </div>
-                  <div>
-                    <Progress color="secondary-red" className={`progress-xs ${s.mutedPink}`} value="75" />
-                  </div>
-                </div>
-              </Widget>
-            </Col>
-            <Col className="mb-4 mb-xl-0" xs={6} sm={6} xl={3}>
-              <Widget className="widget-p-sm">
-                <div className={s.smallWidget}>
-                  <div className="d-flex mb-4">
-                    <img className="py-1 mr-2 img-fluid" src={heartYellow} alt="..." />
-                    <div className="d-flex flex-column">
-                      <p className="headline-3">Text</p>
-                      <p className="body-2">Num<span className="body-3 muted">/ ber</span></p>
-                    </div>
-                  </div>
-                  <div>
-                    <Progress color="secondary-yellow" className={`progress-xs ${s.mutedYellow}`} value="75" />
-                  </div>
-                </div>
-              </Widget>
-            </Col>
-            <Col xs={6} sm={6} xl={3}>
-              <Widget className="widget-p-sm">
-                <div className={s.smallWidget}>
-                  <div className="d-flex mb-4">
-                    <img className="py-1 mr-2 img-fluid" src={heartTeal} alt="..." />
-                    <div className="d-flex flex-column">
-                      <p className="headline-3">Text</p>
-                      <p className="body-2">Num<span className="body-3 muted">/ ber</span></p>
-                    </div>
-                  </div>
-                  <div>
-                    <Progress color="secondary-cyan" className={`progress-xs ${s.mutedTeal}`} value="75" />
-                  </div>
-                </div>
-              </Widget>
-            </Col>
-            <Col xs={6} sm={6} xl={3}>
-              <Widget className="widget-p-sm">
-                <div className={s.smallWidget}>
-                  <div className="d-flex mb-4">
-                    <img className="py-1 mr-2 img-fluid" src={heartViolet} alt="..." />
-                    <div className="d-flex flex-column">
-                      <p className="headline-3">Text</p>
-                      <p className="body-2">Num<span className="body-3 muted">/ ber</span></p>
-                    </div>
-                  </div>
-                  <div>
-                    <Progress color="violet" className={`progress-xs ${s.mutedViolet}`} value="75" />
-                  </div>
+                <div className="widget-table-overflow">
+                  <Table
+                    className={`table-striped table-borderless table-hover ${s.statesTable}`}
+                    responsive
+                  >
+                    <thead>
+                      <tr>
+                        <th className="w-25">TITLE</th>
+                        <th className="w-25">SECTOR</th>
+                        <th className="w-25">COMPANY</th>
+                        <th className="w-25">DATE</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {firstTable
+                        .slice(
+                          firstTableCurrentPage * pageSize,
+                          (firstTableCurrentPage + 1) * pageSize
+                        )
+                        .map((item) => (
+                          <tr key={uuidv4()}>
+                            <td className="d-flex align-items-center">
+                              <a
+                                href={item.href}
+                                className="ml-3"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                {item.news_title}
+                              </a>
+                            </td>
+                            <td>{item.sector}</td>
+                            <td>{item.company}</td>
+                            <td>{item.date}</td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </Table>
+                  <Pagination
+                    className="pagination-borderless"
+                    aria-label="Page navigation example"
+                  >
+                    <PaginationItem disabled={firstTableCurrentPage <= 0}>
+                      <PaginationLink
+                        onClick={(e) =>
+                          setFirstTablePage(e, firstTableCurrentPage - 1)
+                        }
+                        previous
+                        href="#top"
+                      />
+                    </PaginationItem>
+                    {[...Array(firstTablePagesCount)].map((page, i) => (
+                      <PaginationItem
+                        active={i === firstTableCurrentPage}
+                        key={i}
+                      >
+                        <PaginationLink
+                          onClick={(e) => setFirstTablePage(e, i)}
+                          href="#top"
+                        >
+                          {i + 1}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+                    <PaginationItem
+                      disabled={
+                        firstTableCurrentPage >= firstTablePagesCount - 1
+                      }
+                    >
+                      <PaginationLink
+                        onClick={(e) =>
+                          setFirstTablePage(e, firstTableCurrentPage + 1)
+                        }
+                        next
+                        href="#top"
+                      />
+                    </PaginationItem>
+                  </Pagination>
                 </div>
               </Widget>
             </Col>
@@ -186,115 +168,32 @@ const Dashboard = () => {
             <div className="d-flex">
               <img className={s.image} src={user} alt="..." />
               <div className={s.userInfo}>
-                <p className="headline-3">Christina Karey</p>
-                <p className="body-3 muted">Brasil</p>
+                <p className="headline-3">{userInfo.name}</p>
+                <p className="body-3 muted">{userInfo.position}</p>
               </div>
             </div>
             <div className={s.userParams}>
               <div className="d-flex flex-column">
-                <p className="headline-3">63 kg</p>
-                <p className="body-3 muted">Weight</p>
+                <p className="headline-3">{userInfo.division}</p>
+                <p className="body-3 muted">사업부</p>
               </div>
               <div className="d-flex flex-column">
-                <p className="headline-3">175 sm</p>
-                <p className="body-3 muted">Height</p>
+                <p className="headline-3">{userInfo.department}</p>
+                <p className="body-3 muted">부서</p>
               </div>
               <div className="d-flex flex-column">
-                <p className="headline-3">28 y.</p>
-                <p className="body-3 muted">Age</p>
+                <p className="headline-3">{userInfo.team}</p>
+                <p className="body-3 muted">파트</p>
               </div>
             </div>
-            <div className={s.goals}>
-              <div className={s.goalsTitle}>
-                <p className="headline-3">Your Goals</p>
-                <UncontrolledDropdown>
-                  <DropdownToggle caret>
-                    &nbsp; Weekly &nbsp;
-                  </DropdownToggle>
-                  <DropdownMenu>
-                    <DropdownItem>Daily</DropdownItem>
-                    <DropdownItem>Weekly</DropdownItem>
-                    <DropdownItem>Monthly</DropdownItem>
-                  </DropdownMenu>
-                </UncontrolledDropdown>
-              </div>
-              <div className="d-flex flex-column mt-3">
-                <div className={s.activity}>
-                  <p className="body-2">Sleep</p>
-                  <p className="body-2">92<span className="body-3 muted"> / 160</span></p>
-                </div>
-                <Progress color="secondary-red" className="progress-xs" value={60} />
-              </div>
-              <div className="d-flex flex-column mt-3">
-                <div className={s.activity}>
-                  <p className="body-2">Sport</p>
-                  <p className="body-2">40<span className="body-3 muted"> / 50</span></p>
-                </div>
-                <Progress color="secondary-yellow" className="progress-xs" value={80} />
-              </div>
-              <div className="d-flex flex-column mt-3">
-                <div className={s.activity}>
-                  <p className="body-2">Water</p>
-                  <p className="body-2">25<span className="body-3 muted"> / 40</span></p>
-                </div>
-                <Progress color="secondary-cyan" className="progress-xs" value={40} />
-              </div>
+            <div style={{ marginTop: "80px" }}>
+              {/* <ReactBigCalendar /> */}
             </div>
-            <p className="headline-3">Appointments</p>
-            <div className={`mt-3 ${s.widgetBlock}`}>
-              <div className={s.widgetBody}>
-                <div className="d-flex">
-                  <img className="img-fluid mr-2" src={gymIcon} alt="..." />
-                  <div className="d-flex flex-column">
-                    <p className="body-2">02.11 , 12:00 - 13:00</p>
-                    <p className="body-3 muted">Yoga, Airplace Gym</p>
-                  </div>
-                </div>
-                <div className="checkbox checkbox-primary">
-                  <input
-                    id="checkbox0"
-                    type="checkbox"
-                    className="styled"
-                    checked={checkboxes[0]}
-                    onChange={() => toggleCheckbox(0)}
-                  />
-                  <label htmlFor="checkbox0" />
-                </div>
-              </div>
-            </div>
-            <div className={`mt-3 ${s.widgetBlock}`}>
-              <div className={s.widgetBody}>
-                <div className="d-flex">
-                  <img className="img-fluid mr-2" src={therapyIcon} alt="..." />
-                  <div className="d-flex flex-column">
-                    <p className="body-2">03.11 , 16:00 - 17:30</p>
-                    <p className="body-3 muted">Therapy</p>
-                  </div>
-                </div>
-                <div className="checkbox checkbox-primary">
-                  <input
-                    id="checkbox1"
-                    type="checkbox"
-                    className="styled"
-                    checked={checkboxes[1]}
-                    onChange={() => toggleCheckbox(1)}
-                  />
-                  <label htmlFor="checkbox1" />
-                </div>
-              </div>
-            </div>
-            <a className={`btn-secondary-red ${s.statsBtn}`} href="#top" role="button">
-              <img className={s.pieImg}  src={statsPie} alt="..." />
-              <div>
-                <p className="headline-2">STATISTIC</p>
-                <p className="body-3">Download your activity</p>
-              </div>
-            </a>
           </Widget>
         </Col>
       </Row>
     </div>
-  )
-}
+  );
+};
 
 export default Dashboard;

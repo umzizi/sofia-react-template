@@ -18,6 +18,7 @@ import Tables from "../../pages/tables/Tables";
 import Charts from "../../pages/uielements/charts/Charts";
 import Icons from "../../pages/uielements/icons/IconsPage";
 import Maps from "../../pages/uielements/maps/google/GoogleMapPage";
+import ChatGPT from "../../pages/chat/Chatgpt";
 
 // -- Component Styles
 import s from "./Layout.module.scss";
@@ -31,28 +32,45 @@ const Layout = (props) => {
         <main className={s.content}>
           <Breadcrumbs url={props.location.pathname} />
           <Switch>
-            <Route path="/template" exact render={() => <Redirect to="template/dashboard"/>} />
-            <Route path="/template/dashboard" exact component={Dashboard}/>
+            <Route
+              path="/template"
+              exact
+              render={() => <Redirect to="template/dashboard" />}
+            />
+            <Route path="/template/dashboard" exact component={Dashboard} />
             <Route path="/template/typography" exact component={Typography} />
             <Route path="/template/tables" exact component={Tables} />
-            <Route path="/template/notifications" exact component={Notifications} />
-            <Route path="/template/ui-elements" exact render={() => <Redirect to={"/template/ui-elements/charts"} />} />
-            <Route path="/template/ui-elements/charts" exact component={Charts} />
+            <Route
+              path="/template/notifications"
+              exact
+              component={Notifications}
+            />
+            <Route
+              path="/template/ui-elements"
+              exact
+              render={() => <Redirect to={"/template/ui-elements/charts"} />}
+            />
+            <Route
+              path="/template/ui-elements/charts"
+              exact
+              component={Charts}
+            />
             <Route path="/template/ui-elements/icons" exact component={Icons} />
             <Route path="/template/ui-elements/maps" exact component={Maps} />
-            <Route path='*' exact render={() => <Redirect to="/error" />} />
+            <Route path="/template/chatgpt" exact component={ChatGPT} />
+            <Route path="*" exact render={() => <Redirect to="/error" />} />
           </Switch>
         </main>
         <Footer />
       </div>
     </div>
   );
-}
+};
 
 Layout.propTypes = {
   sidebarOpened: PropTypes.bool,
   dispatch: PropTypes.func.isRequired,
-}
+};
 
 function mapStateToProps(store) {
   return {

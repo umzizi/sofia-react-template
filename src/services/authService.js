@@ -1,7 +1,5 @@
 const hasToken = (token) => {
-  if (token) {
-    return true
-  }
-}
+  return token && typeof token === "object" && "email" in token;
+};
 
 export default hasToken;

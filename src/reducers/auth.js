@@ -4,29 +4,39 @@ import {
   LOGOUT_SUCCESS,
 } from "../actions/auth.js";
 
-const authenticated = localStorage.getItem('authenticated');
+const authenticated = localStorage.getItem("authenticated") === "true";
+const storedEmail = localStorage.getItem("userEmail");
 
-export default function auth(state = {
+const initialState = {
   isFetching: false,
   isAuthenticated: authenticated,
-}, action) {
+  email: storedEmail || "",
+  errorMessage: "",
+};
+
+export default function auth(state = initialState, action) {
   switch (action.type) {
     case LOGIN_SUCCESS:
-      return Object.assign({}, state, {
+      return {
+        ...state,
         isFetching: false,
         isAuthenticated: true,
-        errorMessage: '',
-      });
+        email: action.payload?.email || "",
+        errorMessage: "",
+      };
     case LOGIN_FAILURE:
-      return Object.assign({}, state, {
+      return {
+        ...state,
         isFetching: false,
         isAuthenticated: false,
         errorMessage: action.payload,
-      });
+      };
     case LOGOUT_SUCCESS:
-      return Object.assign({}, state, {
+      return {
+        ...state,
         isAuthenticated: false,
-      });
+        email: "",
+      };
     default:
       return state;
   }

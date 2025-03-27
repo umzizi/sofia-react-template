@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
+
 import {
   Col,
   Row,
@@ -7,167 +8,166 @@ import {
   Pagination,
   PaginationItem,
   PaginationLink,
-  ButtonDropdown,
-  Dropdown,
-  DropdownMenu,
-  DropdownToggle,
-  DropdownItem,
-  Label,
   Badge,
 } from "reactstrap";
 import Widget from "../../components/Widget/Widget.js";
-import TaskContainer from "./components/TaskContainer/TaskContainer.js";
-
+import ApexLineChart from "./components/ApexLineChart";
+import RechartsPieChart from "./components/RechartsPieChart";
+import ApexRadarChart from "./components/ApexRadarChart";
 // import BootstrapTable from "react-bootstrap-table-next";
 // import paginationFactory from 'react-bootstrap-table2-paginator';
 // import MUIDataTable from "mui-datatables";
 
-import cloudIcon from "../../assets/tables/cloudIcon.svg";
-import funnelIcon from "../../assets/tables/funnelIcon.svg";
-import optionsIcon from "../../assets/tables/optionsIcon.svg";
-import printerIcon from "../../assets/tables/printerIcon.svg";
-import searchIcon from "../../assets/tables/searchIcon.svg";
-import moreIcon from "../../assets/tables/moreIcon.svg";
-
 import s from "./Tables.module.scss";
-import mock from "./mock.js";
 
 const Tables = function () {
+  const ENDPOINT_URL = "http://192.168.80.101:8000";
 
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [firstTable] = useState(mock.firstTable);
-  const [secondTable] = useState(mock.secondTable);
-  const [transactions, setTransactions] = useState(mock.transactionsWidget);
-  const [tasks, setTasks] = useState(mock.tasksWidget);
-  const [firstTableCurrentPage, setFirstTableCurrentPage] = useState(0);
-  const [secondTableCurrentPage, setSecondTableCurrentPage] = useState(0);
-  const [tableDropdownOpen, setTableMenuOpen] = useState(false);
+  const [QATable, setQATable] = useState([]);
+  const [QATableCurrentPage, setQATableCurrentPage] = useState(0);
 
-  const pageSize = 4;
-  const firstTablePagesCount = Math.ceil(firstTable.length / pageSize);
-  const secondTablePagesCount = Math.ceil(secondTable.length / pageSize);
+  const pageSize = 6;
+  const QATablePagesCount = Math.ceil(QATable.length / pageSize);
 
-  const setFirstTablePage = (e, index) => {
+  const setQATablePage = (e, index) => {
     e.preventDefault();
-    setFirstTableCurrentPage(index);
-  }
+    setQATableCurrentPage(index);
+  };
 
-  const setSecondTablePage = (e, index) => {
+  const [PdfTable, setPdfTable] = useState([]);
+  const [PdfTableCurrentPage, setPdfTableCurrentPage] = useState(0);
+
+  const PdfTablePagesCount = Math.ceil(PdfTable.length / pageSize);
+
+  const setPdfTablePage = (e, index) => {
     e.preventDefault();
-    setSecondTableCurrentPage(index);
-  }
+    setPdfTableCurrentPage(index);
+  };
 
-  const toggle = () => {
-    setDropdownOpen(!dropdownOpen);
-  }
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(ENDPOINT_URL + "/QA_info"); // FastAPI 엔드포인트로 요청
+        const data = await response.json();
+        setQATable(data.data); // 서버에서 받은 데이터를 상태로 설정
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
 
-  const transactionMenuOpen = (id) => {
-    setTransactions(
-      transactions.map( transaction => {
-        if (transaction.id === id) {
-          transaction.dropdownOpen = !transaction.dropdownOpen;
-        }
-        return transaction;
-      })
-    )
-  }
+    fetchData();
+  }, []);
 
-  const tableMenuOpen = () => {
-    setTableMenuOpen(!tableDropdownOpen);
-  }
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(ENDPOINT_URL + "/pdf_manager"); // FastAPI 엔드포인트로 요청
+        const data = await response.json();
+        setPdfTable(data.data); // 서버에서 받은 데이터를 상태로 설정
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
 
-  const toggleTask = (id) => {
-    setTasks(
-      tasks.map( task => {
-        if (task.id === id) {
-          task.completed = !task.completed;
-        }
-        return task;
-      })
-    )
-  }
+    fetchData();
+  }, []);
 
   return (
     <div>
       <Row>
         <Col>
+          <Row className="gutter mb-4">
+            <Col className="pr-grid-col" xs={12} lg={6}>
+              <Widget className="widget-p-md">
+                <div className="headline-2 mb-3">GPU 사용량</div>
+                <ApexLineChart />
+              </Widget>
+            </Col>
+            <Col className="mt-4 mt-xl-0" xs={12} xl={3}>
+              <Widget className="widget-p-md">
+                <div className="headline-2 mb-3">Temperature (°C)</div>
+                <RechartsPieChart />
+              </Widget>
+            </Col>
+            <Col className="mt-4 mt-xl-0" xs={12} xl={3}>
+              <Widget className="widget-p-md">
+                <div className="headline-2">Radar Chart</div>
+                <ApexRadarChart />
+              </Widget>
+            </Col>
+          </Row>
           <Row className="mb-4">
             <Col>
               <Widget>
                 <div className={s.tableTitle}>
-                  <div className="headline-2">States Colors</div>
-                  <div className="d-flex">
-                    <a href="/#"><img src={searchIcon} alt="Search"/></a>
-                    <a href="/#"><img className="d-none d-sm-block" src={cloudIcon} alt="Cloud" /></a>
-                    <a href="/#"><img src={printerIcon} alt="Printer" /></a>
-                    <a href="/#"><img className="d-none d-sm-block" src={optionsIcon} alt="Options" /></a>
-                    <a href="/#"><img src={funnelIcon} alt="Funnel" /></a>
+                  <div className="headline-2">
+                    Question & Answer Monitoring Table
                   </div>
                 </div>
                 <div className="widget-table-overflow">
-                  <Table className={`table-striped table-borderless table-hover ${s.statesTable}`} responsive>
+                  <Table
+                    className="table-striped table-borderless table-hover"
+                    responsive
+                  >
                     <thead>
-                    <tr>
-                      <th className={s.checkboxCol}>
-                        <div className="checkbox checkbox-primary">
-                          <input
-                            className="styled"
-                            id="checkbox100"
-                            type="checkbox"
-                          />
-                          <label for="checkbox100"/>
-                        </div>
-                      </th>
-                      <th className="w-25">NAME</th>
-                      <th className="w-25">COMPANY</th>
-                      <th className="w-25">CITY</th>
-                      <th className="w-25">STATE</th>
-                    </tr>
+                      <tr>
+                        <th>User</th>
+                        <th>Question</th>
+                        <th>Answer</th>
+                        <th>Document</th>
+                        <th>page</th>
+                        <th>score</th>
+                        <th>feedback</th>
+                        <th>state</th>
+                      </tr>
                     </thead>
                     <tbody>
-                    {firstTable
-                      .slice(
-                        firstTableCurrentPage * pageSize,
-                        (firstTableCurrentPage + 1) * pageSize
-                      )
-                      .map(item => (
+                      {QATable.slice(
+                        QATableCurrentPage * pageSize,
+                        (QATableCurrentPage + 1) * pageSize
+                      ).map((item) => (
                         <tr key={uuidv4()}>
+                          <td>{item.user}</td>
+                          <td>{item.question}</td>
+                          <td>{item.answer}</td>
+                          <td>{item.document}</td>
+                          <td>{item.page}</td>
+                          <td>{item.score}</td>
+                          <td>{item.feedback}</td>
                           <td>
-                            <div className="checkbox checkbox-primary">
-                              <input
-                                id={item.id}
-                                className="styled"
-                                type="checkbox"
-                              />
-                              <Label for={item.id} />
-                            </div>
+                            <Badge color={item.color}>{item.state}</Badge>
                           </td>
-                          <td className="d-flex align-items-center"><img className={s.image} src={item.img} alt="User"/><span className="ml-3">{item.name}</span></td>
-                          <td>{item.company}</td>
-                          <td>{item.city}</td>
-                          <td>{item.state}</td>
                         </tr>
                       ))}
                     </tbody>
                   </Table>
-                  <Pagination className="pagination-borderless" aria-label="Page navigation example">
-                    <PaginationItem disabled={firstTableCurrentPage <= 0}>
+                  <Pagination className="pagination-with-border">
+                    <PaginationItem disabled={QATableCurrentPage <= 0}>
                       <PaginationLink
-                        onClick={e => setFirstTablePage(e, firstTableCurrentPage - 1)}
+                        onClick={(e) =>
+                          setQATablePage(e, QATableCurrentPage - 1)
+                        }
                         previous
                         href="#top"
                       />
                     </PaginationItem>
-                    {[...Array(firstTablePagesCount)].map((page, i) =>
-                      <PaginationItem active={i === firstTableCurrentPage} key={i}>
-                        <PaginationLink onClick={e => setFirstTablePage(e, i)} href="#top">
+                    {[...Array(QATablePagesCount)].map((page, i) => (
+                      <PaginationItem active={i === QATableCurrentPage} key={i}>
+                        <PaginationLink
+                          onClick={(e) => setQATablePage(e, i)}
+                          href="#top"
+                        >
                           {i + 1}
                         </PaginationLink>
                       </PaginationItem>
-                    )}
-                    <PaginationItem disabled={firstTableCurrentPage >= firstTablePagesCount - 1}>
+                    ))}
+                    <PaginationItem
+                      disabled={QATableCurrentPage >= QATablePagesCount - 1}
+                    >
                       <PaginationLink
-                        onClick={e => setFirstTablePage(e, firstTableCurrentPage + 1)}
+                        onClick={(e) =>
+                          setQATablePage(e, QATableCurrentPage + 1)
+                        }
                         next
                         href="#top"
                       />
@@ -181,172 +181,70 @@ const Tables = function () {
             <Col>
               <Widget>
                 <div className={s.tableTitle}>
-                  <div className="headline-2">Material UI table</div>
-                  <Dropdown
-                    className="d-none d-sm-block"
-                    nav
-                    isOpen={tableDropdownOpen}
-                    toggle={() => tableMenuOpen()}
-                  >
-                    <DropdownToggle nav>
-                      <img className="d-none d-sm-block" src={moreIcon} alt="More..."/>
-                    </DropdownToggle>
-                    <DropdownMenu >
-                      <DropdownItem>
-                        <div>Copy</div>
-                      </DropdownItem>
-                      <DropdownItem>
-                        <div>Edit</div>
-                      </DropdownItem>
-                      <DropdownItem>
-                        <div>Delete</div>
-                      </DropdownItem>
-                    </DropdownMenu>
-                  </Dropdown>
+                  <div className="headline-2">PDF Manager Table</div>
                 </div>
                 <div className="widget-table-overflow">
-                  <Table className="table-striped table-borderless table-hover" responsive>
+                  <Table
+                    className="table-striped table-borderless table-hover"
+                    responsive
+                  >
                     <thead>
-                    <tr>
-                      <th>
-                        <div className="checkbox checkbox-primary">
-                          <input
-                            id="checkbox200"
-                            className="styled"
-                            type="checkbox"
-                          />
-                          <label for="checkbox200"/>
-                        </div>
-                      </th>
-                      <th className={s.nameCol}>NAME</th>
-                      <th>EMAIL</th>
-                      <th>PRODUCT</th>
-                      <th>PRICE</th>
-                      <th>DATE</th>
-                      <th>CITY</th>
-                      <th>STATUS</th>
-                    </tr>
+                      <tr>
+                        <th>PDF Name</th>
+                        <th>PDF Summary</th>
+                        <th>Total Page</th>
+                        <th>Referenced Page</th>
+                      </tr>
                     </thead>
                     <tbody>
-                    {secondTable
-                      .slice(
-                        secondTableCurrentPage * pageSize,
-                        (secondTableCurrentPage + 1) * pageSize
-                      )
-                      .map(item => (
-                      <tr key={uuidv4()}>
-                        <td>
-                          <div className="checkbox checkbox-primary">
-                            <input
-                              id={item.id}
-                              className="styled"
-                              type="checkbox"
-                            />
-                            <label for={item.id} />
-                          </div>
-                        </td>
-                        <td>{item.name}</td>
-                        <td>{item.email}</td>
-                        <td>{item.product}</td>
-                        <td>{item.price}</td>
-                        <td>{item.date}</td>
-                        <td>{item.city}</td>
-                        <td><Badge color={item.color}>{item.status}</Badge></td>
-                      </tr>
-                    ))}
+                      {PdfTable.slice(
+                        PdfTableCurrentPage * pageSize,
+                        (PdfTableCurrentPage + 1) * pageSize
+                      ).map((item) => (
+                        <tr key={uuidv4()}>
+                          <td>{item.pdf_name}</td>
+                          <td>{item.summary}</td>
+                          <td>{item.total_page}</td>
+                          <td>{item.referenced_page}</td>
+                        </tr>
+                      ))}
                     </tbody>
                   </Table>
                   <Pagination className="pagination-with-border">
-                    <PaginationItem disabled={secondTableCurrentPage <= 0}>
+                    <PaginationItem disabled={PdfTableCurrentPage <= 0}>
                       <PaginationLink
-                        onClick={e => setSecondTablePage(e, secondTableCurrentPage - 1)}
+                        onClick={(e) =>
+                          setPdfTablePage(e, PdfTableCurrentPage - 1)
+                        }
                         previous
                         href="#top"
                       />
                     </PaginationItem>
-                    {[...Array(secondTablePagesCount)].map((page, i) =>
-                      <PaginationItem active={i === secondTableCurrentPage} key={i}>
-                        <PaginationLink onClick={e => setSecondTablePage(e, i)} href="#top">
+                    {[...Array(PdfTablePagesCount)].map((page, i) => (
+                      <PaginationItem
+                        active={i === PdfTableCurrentPage}
+                        key={i}
+                      >
+                        <PaginationLink
+                          onClick={(e) => setPdfTablePage(e, i)}
+                          href="#top"
+                        >
                           {i + 1}
                         </PaginationLink>
                       </PaginationItem>
-                    )}
-                    <PaginationItem disabled={secondTableCurrentPage >= secondTablePagesCount - 1}>
+                    ))}
+                    <PaginationItem
+                      disabled={PdfTableCurrentPage >= PdfTablePagesCount - 1}
+                    >
                       <PaginationLink
-                        onClick={e => setSecondTablePage(e, secondTableCurrentPage + 1)}
+                        onClick={(e) =>
+                          setPdfTablePage(e, PdfTableCurrentPage + 1)
+                        }
                         next
                         href="#top"
                       />
                     </PaginationItem>
                   </Pagination>
-                </div>
-              </Widget>
-            </Col>
-          </Row>
-          <Row>
-            <Col xs={12} xl={8} className="pr-grid-col">
-              <Widget>
-                <div className={s.tableTitle}>
-                  <div className="headline-2">Recent transaction</div>
-                  <div>
-                    <ButtonDropdown
-                      isOpen={dropdownOpen}
-                      toggle={toggle}
-                      className=""
-                    >
-                      <DropdownToggle caret>
-                        &nbsp; Weekly &nbsp;
-                      </DropdownToggle>
-                      <DropdownMenu>
-                        <DropdownItem>Daily</DropdownItem>
-                        <DropdownItem>Weekly</DropdownItem>
-                        <DropdownItem>Monthly</DropdownItem>
-                      </DropdownMenu>
-                    </ButtonDropdown>
-                    {/*<img src="" alt="Filter option"/>*/}
-                  </div>
-                </div>
-                <div className={s.widgetContentBlock}>
-                  {transactions.map(item => (
-                    <div key={uuidv4()} className={s.content}>
-                      <div><img src={item.icon} alt="Item" /><span className="body-2 ml-3">{item.category}</span></div>
-                      <div className="body-3 muted d-none d-md-block">{item.date}</div>
-                      <div className="body-2">{item.price}</div>
-                      <div className="body-3 muted d-none d-lg-block">{item.description}</div>
-
-                      <Dropdown
-                        className="d-none d-sm-block"
-                        nav
-                        isOpen={item.dropdownOpen}
-                        toggle={() => transactionMenuOpen(item.id)}
-                      >
-                        <DropdownToggle nav>
-                          <img className="d-none d-sm-block" src={moreIcon} alt="More ..."/>
-                        </DropdownToggle>
-                        <DropdownMenu >
-                          <DropdownItem>
-                            <div>Copy</div>
-                          </DropdownItem>
-                          <DropdownItem>
-                            <div>Edit</div>
-                          </DropdownItem>
-                          <DropdownItem>
-                            <div>Delete</div>
-                          </DropdownItem>
-                        </DropdownMenu>
-                      </Dropdown>
-                    </div>
-                  ))}
-                </div>
-              </Widget>
-            </Col>
-            <Col xs={12} xl={4} className="pl-grid-col mt-4 mt-xl-0">
-              <Widget>
-                <div className={s.tableTitle}>
-                  <div className="headline-2">Tasks</div>
-                </div>
-                <div className={s.widgetContentBlock}>
-                  <TaskContainer tasks={tasks} toggleTask={toggleTask} />
                 </div>
               </Widget>
             </Col>
@@ -354,7 +252,7 @@ const Tables = function () {
         </Col>
       </Row>
     </div>
-  )
-}
+  );
+};
 
 export default Tables;
